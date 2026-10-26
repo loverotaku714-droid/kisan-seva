@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// One row per farmer question processed by the assistant
+model Query {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String // crop_disease | weather | price | general
+  language  String // en | hi | kn
+  createdAt DateTime @default(now())
+}
