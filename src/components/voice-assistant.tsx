@@ -41,6 +41,7 @@ import {
   type SpeechRecognitionLike,
 } from '@/lib/speech'
 import { useAssistantStore } from '@/lib/assistant-store'
+import { useAuthStore } from '@/lib/auth-store'
 import { cn } from '@/lib/utils'
 
 type Status = 'idle' | 'listening' | 'stt' | 'ai' | 'speaking' | 'done' | 'error'
@@ -105,6 +106,7 @@ const busy = (s: Status) => s === 'listening' || s === 'stt' || s === 'ai' || s 
 
 export function VoiceAssistant() {
   const { toast } = useToast()
+  const user = useAuthStore((s) => s.user)
   const [language, setLanguage] = useState('en')
   const [status, setStatus] = useState<Status>('idle')
   const [transcript, setTranscript] = useState('')
@@ -118,6 +120,14 @@ export function VoiceAssistant() {
   const finalRef = useRef('')
   const statusRef = useRef<Status>('idle')
   const langRef = useRef('en')
+
+  // Personalise: default to the logged-in farmer's preferred answer language
+  useEffect(() => {
+    if (user?.language && ['en', 'hi', 'kn'].includes(user.language)) {
+      setLanguage(user.language)
+      langRef.current = user.language
+    }
+  }, [user])
 
   const pendingQuestion = useAssistantStore((s) => s.pendingQuestion)
   const pendingLanguage = useAssistantStore((s) => s.pendingLanguage)

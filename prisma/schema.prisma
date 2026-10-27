@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// A registered farmer account
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  phone        String   @unique // 10-digit Indian mobile number
+  passwordHash String // scrypt: salt:hash (hex)
+  district     String   @default("Bengaluru") // Karnataka district for weather personalisation
+  language     String   @default("en") // en | hi | kn — preferred answer language
+  createdAt    DateTime @default(now())
+  queries      Query[]
+}
+
 // One row per farmer question processed by the assistant
 model Query {
   id        String   @id @default(cuid())
@@ -14,5 +26,7 @@ model Query {
   answer    String
   category  String // crop_disease | weather | price | general
   language  String // en | hi | kn
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
 }

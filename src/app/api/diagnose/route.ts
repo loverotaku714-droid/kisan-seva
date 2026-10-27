@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import ZAI from 'z-ai-web-dev-sdk'
 import { db } from '@/lib/db'
 import { LANGUAGE_NAMES, LANGUAGE_LABELS, type Language } from '@/lib/farm-data'
+import { getSessionUser } from '@/lib/auth'
 
 export const maxDuration = 90
 
@@ -125,6 +126,7 @@ export async function POST(req: NextRequest) {
           answer: `${result.disease}: ${result.remedy}`.slice(0, 2000),
           category: 'crop_disease',
           language,
+          userId: (await getSessionUser(req.cookies.get('kisan_session')?.value))?.id ?? null,
         },
       })
     } catch (e) {

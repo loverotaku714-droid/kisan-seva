@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { useAuthStore } from '@/lib/auth-store'
 import { speak, stopSpeaking } from '@/lib/speech'
 import { cn } from '@/lib/utils'
 
@@ -30,11 +31,17 @@ interface BulletinData {
 
 export function VoiceBulletin() {
   const { toast } = useToast()
+  const user = useAuthStore((s) => s.user)
   const [district, setDistrict] = useState('Mandya')
   const [phase, setPhase] = useState<Phase>('idle')
   const [bulletin, setBulletin] = useState<BulletinData | null>(null)
 
   const cancelSpeakRef = useRef<(() => void) | null>(null)
+
+  // Personalise: logged-in farmers get their own district pre-selected
+  useEffect(() => {
+    if (user?.district) setDistrict(user.district)
+  }, [user])
 
   useEffect(() => {
     return () => {

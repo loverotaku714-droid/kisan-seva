@@ -79,3 +79,27 @@ Stage Summary:
 - All 3 features verified end-to-end: bulletin returns real Mandya weather (wttr.in, 20°C/53%/17% rain); diagnose correctly identified test-leaf.png as Tomato / Septoria Leaf Spot / moderate / 75% with practical remedy; /api/ask now answers weather with live figures
 - Browser verified: bulletin plays & renders transcript+chips; photo upload→diagnosis report works in-browser; photo diagnosis appears in Recent Advisories; mobile stacks correctly; footer sticky; lint clean; zero console errors
 - Dev server stable on port 3000
+
+---
+Task ID: 5
+Agent: Main agent (Z.ai)
+Task: User asked "can you add a login page" — build full authentication (login + signup + sessions) for Kisan Seva
+
+Work Log:
+- prisma/schema.prisma: added User model (name, unique 10-digit phone, scrypt passwordHash, district, language, createdAt); Query.userId optional FK with onDelete SetNull; ran db:push
+- src/lib/auth.ts (zero new deps, Node crypto): scrypt password hashing (salt:hash hex), timingSafeEqual verify, HMAC-SHA256 signed session token (base64url payload.sig, 30-day exp), httpOnly cookie "kisan_session", normalizePhone (+91/spaces → 10 digits, /^[6-9]\d{9}$/), getSessionUser() resolver
+- API routes: POST /api/auth/signup (validates name/phone/password, 409 on duplicate, sets cookie), POST /api/auth/login (401 on bad creds), POST /api/auth/logout (expires cookie), GET /api/auth/me
+- src/lib/auth-store.ts: zustand auth store (user, loading, refresh, setUser, logout)
+- /login page: server page.tsx (metadata "Login — Kisan Seva") + components/auth/login-form.tsx — two-panel layout: green brand panel (4 personalisation promises) + Login/Sign Up tabs; login = phone+password; signup = name/phone/password + Karnataka district Select (KARNATAKA_DISTRICTS exported from farm-data.ts) + answer language Select; show/hide password, inline error box, loading spinners, "continue as guest" link, auto-redirect home if already logged in
+- site-header.tsx: fetches auth state on mount; logged in → avatar-initial chip + name + Log Out button; logged out → outline Login button → /login
+- Personalisation wiring: voice-bulletin.tsx prefills district from user.profile; voice-assistant.tsx defaults answer language from user.language
+- /api/ask + /api/diagnose: attach session user's id to saved Query rows (best-effort)
+- Fixed: dev server held stale Prisma Client after schema change → 500 "db.user undefined"; clean restart resolved
+- Verified via curl: signup ✓, me ✓, duplicate 409 ✓, logout ✓, me null ✓, login with "+91 98765 43210" formatting ✓, wrong password 401 ✓, short password 400 ✓; ask-with-cookie saved row shows userId in DB
+- Verified via agent-browser: signup UI (Sunita Devi/Mandya) → redirect → header chip + Log Out; bulletin district auto-set to Mandya; logout → Login button; login UI re-entry; wrong password → inline role=alert error; already-logged-in /login visit redirects home; signup with Kannada → assistant language select shows ಕನ್ನಡ; mobile 390px login page + header avatar chip render correctly; zero console errors; lint clean
+- Cleanup: deleted 2 test users; kept demo account Sunita Devi / 9812345678 / harvest42 (Mandya, en) for user testing
+
+Stage Summary:
+- Kisan Seva now has full auth: phone-based login/signup, 30-day httpOnly sessions, header auth state, per-user district + language personalisation of bulletin & assistant, user-linked query history
+- Demo login: phone 9812345678, password harvest42
+- Dev server stable on port 3000; lint clean; zero console errors
