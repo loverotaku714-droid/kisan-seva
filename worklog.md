@@ -55,3 +55,27 @@ Work Log:
 
 Stage Summary:
 - Site renamed to "Kisan Seva" everywhere (UI, metadata, AI persona); all functionality intact
+
+---
+Task ID: 4
+Agent: Main agent (Z.ai)
+Task: Build the top-3 "next level" features: Photo Crop Doctor, Daily Voice Bulletin, Real Live Weather
+
+Work Log:
+- Verified z-ai SDK vision support (createVision, model glm-5v-turbo) via CLI test image
+- Created src/lib/weather.ts — 3-source weather chain: Open-Meteo → wttr.in → deterministic simulator; 30-min cache; canonical 4-value outlook mapping; never throws
+- Discovered Open-Meteo daily quota exhausted on sandbox IP → wttr.in serves as live source (returns real Mandya data); simulated only as last resort
+- Updated /api/ask: uses getWeather() for LIVE/estimated weather context in system prompt
+- Created /api/bulletin (GET ?district=): greeting + live weather + tomorrow rain chance + top-3 mandi prices + day-rotating farming tip
+- Created /api/diagnose (POST imageBase64+mimeType+note+language): glm-5v-turbo vision → JSON {crop, disease, severity, remedy, confidence}; saves to Query table as "[Photo] <crop>" crop_disease entry
+- Created src/components/photo-doctor.tsx — camera/file capture, preview, optional note, severity badge (healthy/mild/moderate/severe), confidence, spoken remedy via speak(), Doctor's Report panel
+- Created src/components/voice-bulletin.tsx — radio-style card: district input, Play/Stop, animated equalizer, LIVE/Estimated badge, weather chips (temp/rain/humidity/wind/price), full transcript + tip
+- page.tsx: new "Beyond Voice — Show & Listen" section with both cards side-by-side; header nav + footer links updated (Crop Doctor, Bulletin)
+- Fixed: ScanLeaf icon not in lucide-react (→ ScanSearch) which had crashed the dev server; stale-cache 500s resolved by clean restart via init script
+- Fixed: LIVE badge logic — wttr.in counts as live, only 'simulated' shows Estimated
+- Updated disclaimers (voice assistant card + footer) to reflect live weather
+
+Stage Summary:
+- All 3 features verified end-to-end: bulletin returns real Mandya weather (wttr.in, 20°C/53%/17% rain); diagnose correctly identified test-leaf.png as Tomato / Septoria Leaf Spot / moderate / 75% with practical remedy; /api/ask now answers weather with live figures
+- Browser verified: bulletin plays & renders transcript+chips; photo upload→diagnosis report works in-browser; photo diagnosis appears in Recent Advisories; mobile stacks correctly; footer sticky; lint clean; zero console errors
+- Dev server stable on port 3000

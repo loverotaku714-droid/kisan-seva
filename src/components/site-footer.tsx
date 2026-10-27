@@ -25,8 +25,9 @@ export function SiteFooter() {
             <p className="text-sm font-bold tracking-wide text-yellow-300 uppercase">Explore</p>
             <ul className="mt-3 space-y-2 text-sm text-green-100/80">
               <li><a className="transition-colors hover:text-yellow-300" href="#assistant">Voice Assistant</a></li>
+              <li><a className="transition-colors hover:text-yellow-300" href="#doctor">Crop Doctor</a></li>
+              <li><a className="transition-colors hover:text-yellow-300" href="#bulletin">Daily Bulletin</a></li>
               <li><a className="transition-colors hover:text-yellow-300" href="#how-it-works">How It Works</a></li>
-              <li><a className="transition-colors hover:text-yellow-300" href="#advisories">Advisory Domains</a></li>
               <li><a className="transition-colors hover:text-yellow-300" href="#recent">Recent Advisories</a></li>
             </ul>
           </nav>
@@ -54,9 +55,10 @@ export function SiteFooter() {
 
         <div className="mt-10 border-t border-green-800/60 pt-6">
           <p className="text-xs leading-relaxed text-green-200/60">
-            Demo prototype · Weather and market-price values are simulated for demonstration only ·
-            Always consult your local agriculture officer before acting on advice · Inspired by the
-            project notebook — AIMS &amp; RC, Bengaluru
+            Demo prototype · Live weather from Open-Meteo / wttr.in (estimated values when
+            offline) · Market prices are simulated for demonstration · Always consult your local
+            agriculture officer before acting on advice · Inspired by the project notebook — AIMS
+            &amp; RC, Bengaluru
           </p>
           <p className="mt-2 text-xs text-green-200/60">
             © {new Date().getFullYear()} Kisan Seva · Voice-Based Farmer Assistant

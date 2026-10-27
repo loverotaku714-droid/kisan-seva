@@ -6,9 +6,9 @@ import {
   LANGUAGE_LABELS,
   SIMULATED_PRICES,
   detectDistrict,
-  simulateWeather,
   type Language,
 } from '@/lib/farm-data'
+import { getWeather } from '@/lib/weather'
 
 export const maxDuration = 60
 
@@ -21,8 +21,7 @@ function buildPriceTable(): string {
     .join('\n')
 }
 
-function buildSystemPrompt(question: string, lang: Language): string {
-  const weather = simulateWeather(detectDistrict(question))
+function buildSystemPrompt(question: string, lang: Language, weather: Awaited<ReturnType<typeof getWeather>>): string {
   return `You are "Kisan Seva", a friendly voice-based assistant built for Indian farmers.
 A farmer asked a question that was transcribed from speech. Your job has TWO steps:
 
@@ -40,7 +39,7 @@ STEP 2 — Write the answer that will be converted to SPEECH:
 - Never mention that you are an AI model or that data is simulated.
 
 Reference context for this demo (Karnataka region):
-- Simulated weather for ${weather.district} today: ${weather.outlook}, around ${weather.tempC}°C, humidity ${weather.humidity}%, rain chance ${weather.rainChance}%, wind ${weather.windKmph} km/h. Use these numbers when the farmer asks about weather.
+- ${weather.source === 'open-meteo' ? 'LIVE' : 'Estimated'} weather for ${weather.district} today: ${weather.outlook}, around ${weather.tempC}°C (max ${weather.tempMaxC}°C, min ${weather.tempMinC}°C), humidity ${weather.humidity}%, rain chance ${weather.rainChance}% today and ${weather.rainChanceTomorrow}% tomorrow, wind ${weather.windKmph} km/h. Use these numbers when the farmer asks about weather.
 - Simulated mandi prices (₹ per quintal):
 ${buildPriceTable()}
 If the crop is not in the list, give general price guidance and suggest visiting the local mandi or the eNAM portal.
@@ -81,10 +80,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Question is too long (max 500 characters)' }, { status: 400 })
     }
 
+    const weather = await getWeather(detectDistrict(question))
     const zai = await ZAI.create()
     const completion = await zai.chat.completions.create({
       messages: [
-        { role: 'system', content: buildSystemPrompt(question, language) },
+        { role: 'system', content: buildSystemPrompt(question, language, weather) },
         { role: 'user', content: question },
       ],
     })
