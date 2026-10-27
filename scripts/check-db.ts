@@ -6,7 +6,7 @@ async function main() {
   const rows = await prisma.query.findMany({
     orderBy: { createdAt: 'desc' },
     take: 15,
-    select: { id: true, question: true, answer: true, category: true, language: true },
+    select: { id: true, question: true, category: true, language: true, userId: true },
   })
   console.log(JSON.stringify(rows, null, 2))
 }

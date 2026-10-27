@@ -55,6 +55,14 @@ export function simulateWeather(district: string): SimWeather {
   }
 }
 
+/** Canonical Karnataka districts (for signup select, bulletin, etc.) */
+export const KARNATAKA_DISTRICTS = [
+  'Bengaluru', 'Mysuru', 'Mandya', 'Hassan', 'Tumakuru', 'Belagavi', 'Kalaburagi',
+  'Davanagere', 'Shivamogga', 'Hubballi', 'Dharwad', 'Ballari', 'Chitradurga',
+  'Kolar', 'Chikkaballapur', 'Kodagu', 'Raichur', 'Bidar', 'Vijayapura',
+  'Haveri', 'Gadag', 'Koppal', 'Yadgir',
+]
+
 /** Try to detect a known Karnataka district mentioned in the question */
 const DISTRICTS = [
   'Bengaluru', 'Bangalore', 'Mysuru', 'Mysore', 'Mandya', 'Hassan', 'Tumakuru',

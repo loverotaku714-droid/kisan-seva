@@ -9,6 +9,7 @@ import {
   type Language,
 } from '@/lib/farm-data'
 import { getWeather } from '@/lib/weather'
+import { getSessionUser } from '@/lib/auth'
 
 export const maxDuration = 60
 
@@ -113,10 +114,11 @@ export async function POST(req: NextRequest) {
     }
 
     // persist to database (best-effort; don't fail the request if DB write fails)
+    const sessionUser = await getSessionUser(req.cookies.get('kisan_session')?.value)
     let savedId: string | null = null
     try {
       const saved = await db.query.create({
-        data: { question, answer, category, language },
+        data: { question, answer, category, language, userId: sessionUser?.id ?? null },
       })
       savedId = saved.id
     } catch (e) {
