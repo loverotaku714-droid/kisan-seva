@@ -137,3 +137,28 @@ Work Log:
 Stage Summary:
 - Repo now fully deployment-ready: b35dc03 pushed with Dockerfile + DEPLOY.md
 - Going live needs user action: connect repo at Railway/Render/Vercel (browser, ~3 min) or provide a host token for me to deploy via API
+
+---
+Task ID: 8 (PAUSED — resume point for next session)
+Agent: Main agent (Z.ai)
+Task: User's Render deploy (https://kisan-seva-z764.onrender.com) returns 502; user asked me to fix it, then provided Render API key rnd_dDtU0cEph7H44dP0ne3yP7ClY8Js. User then said "lets stop here ill come back tomorrow" BEFORE any Render API calls were made.
+
+Work Log:
+- Diagnosed 502 root cause: Render's Node runtime has no bun; old package.json start script required bun → crash on boot
+- Fixed package.json start to portable node: "start": "NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log" (start:bun kept for local)
+- Added render.yaml blueprint (runtime: docker, plan: free, healthCheckPath: /, AUTH_SECRET generateValue, DATABASE_URL file:/app/db/custom.db)
+- Dockerfile already in place (oven/bun:1, prisma db push at boot, /app/db volume)
+- Committed & pushed fix to main of loverotaku714-droid/kisan-seva ("Fix Render deploy: portable node start script + render.yaml blueprint + npm-based deploy commands")
+- Site still 502 as of pause — service has NOT been redeployed yet
+- NO Render API calls made yet; user's key rnd_dDtU0cEph7H44dP0ne3yP7ClY8Js received but unused
+
+Stage Summary:
+NEXT SESSION RESUME STEPS (in order):
+1. GET https://api.render.com/v1/services with Bearer rnd_dDtU0cEph7H44dP0ne3yP7ClY8Js → find service kisan-seva-z764 (id needed)
+2. Inspect service settings + last deploy logs to confirm failure mode
+3. Fix config: prefer switching runtime to docker (uses Dockerfile + render.yaml), OR Node runtime with Build "npm install && npx prisma generate && npm run build", Start "npm run start", env DATABASE_URL=file:/opt/render/project/src/db/custom.db + AUTH_SECRET
+4. POST /v1/services/{id}/deploys → poll until live
+5. Verify https://kisan-seva-z764.onrender.com: / , /login , /api/auth/me , /api/history all 200
+6. Remind user to revoke the shared Render API key (and the GitHub PAT) — both were pasted in chat
+- Other state: GitHub repo loverotaku714-droid/kisan-seva (public, main) is source of truth; Render likely auto-syncs from it; demo login 9812345678 / harvest42
+- Optional backlog (never requested): move repo to ASJADAHMED07 account; "My Questions" history page; profile edit
