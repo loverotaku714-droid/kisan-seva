@@ -21,3 +21,22 @@ Stage Summary:
 - All API tests pass: crop_disease (en), weather with simulated Mandya data (en), price (hi) all classify & answer correctly; DB writes succeed
 - Agent Browser verification passed: page renders with zero console errors; golden path works (sample chip click → transcript → AI answer with "Crop Disease Advice" badge → Play again button); typed-input path works (cotton price → "Market Price" badge); Recent Advisories populates from DB; mobile (iPhone 14) layout stacks correctly; footer sticks to viewport bottom
 - Lint clean; dev server stable on port 3000
+
+---
+Task ID: 2
+Agent: Main agent (Z.ai)
+Task: User reported "language shown in chinese, switch to english" — verify site language is English end-to-end
+
+Work Log:
+- Grepped entire src/ for CJK characters: zero matches found
+- Inspected /api/ask route: system prompt enforces English/Hindi/Kannada answers only
+- Inspected src/lib/speech.ts: STT/TTS locales pinned to en-IN/hi-IN/kn-IN (no zh locale possible)
+- Dumped DB query history via scripts/check-db.ts: all entries English or Hindi (intentional language options)
+- Confirmed the Chinese text user saw was in the assistant's chat output (skill loading messages), not the website
+- Re-verified via Agent Browser: hero, voice assistant, 7-step pipeline, 3 advisory domains, recent advisories, footer all render in English
+- Golden path re-tested: sample question → AI answer with "Crop Disease Advice" badge in English; pipeline stages all checked
+- Mobile (iPhone 14) layout verified; footer sticks to bottom; lint clean; zero console errors
+
+Stage Summary:
+- Site confirmed 100% English UI; Hindi/Kannada remain optional user-selectable answer languages (per original design)
+- No code changes required; all assistant chat responses now in English
