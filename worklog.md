@@ -40,3 +40,18 @@ Work Log:
 Stage Summary:
 - Site confirmed 100% English UI; Hindi/Kannada remain optional user-selectable answer languages (per original design)
 - No code changes required; all assistant chat responses now in English
+
+---
+Task ID: 3
+Agent: Main agent (Z.ai)
+Task: Rename site from "Kisan Vani" to "Kisan Seva"
+
+Work Log:
+- Grepped all source files for "Vani": found 10 occurrences across 6 files
+- Replaced in: layout.tsx (title, authors, openGraph), site-header.tsx (aria-label, brand), site-footer.tsx (brand, copyright), hero.tsx (intro paragraph), recent-advisories.tsx (section description), api/ask/route.ts (LLM system prompt persona)
+- Verified zero remaining "Vani" matches; lint clean
+- Agent Browser check: page title + header + hero + footer all show "Kisan Seva"; no console errors
+- API golden-path re-test after prompt change: weather question classified correctly, English spoken-style answer returned
+
+Stage Summary:
+- Site renamed to "Kisan Seva" everywhere (UI, metadata, AI persona); all functionality intact

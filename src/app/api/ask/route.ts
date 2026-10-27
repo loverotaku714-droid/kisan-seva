@@ -23,7 +23,7 @@ function buildPriceTable(): string {
 
 function buildSystemPrompt(question: string, lang: Language): string {
   const weather = simulateWeather(detectDistrict(question))
-  return `You are "Kisan Vani", a friendly voice-based assistant built for Indian farmers.
+  return `You are "Kisan Seva", a friendly voice-based assistant built for Indian farmers.
 A farmer asked a question that was transcribed from speech. Your job has TWO steps:
 
 STEP 1 — Classify the question into exactly ONE category:

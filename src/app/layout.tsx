@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kisan Vani — Voice-Based Farmer Assistant",
+  title: "Kisan Seva — Voice-Based Farmer Assistant",
   description:
     "A speech-first AI assistant for farmers: ask questions out loud about crop diseases, weather and market prices, and hear the answer spoken back in your language. Built with NLP, Speech Processing and AI.",
   keywords: [
@@ -29,12 +29,12 @@ export const metadata: Metadata = {
     "text-to-speech",
     "AI",
   ],
-  authors: [{ name: "Kisan Vani Project" }],
+  authors: [{ name: "Kisan Seva Project" }],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },
   openGraph: {
-    title: "Kisan Vani — Voice-Based Farmer Assistant",
+    title: "Kisan Seva — Voice-Based Farmer Assistant",
     description:
       "Speak your farming question, hear expert advice — crop disease, weather and prices in your language.",
     type: "website",

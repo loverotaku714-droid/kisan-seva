@@ -11,7 +11,7 @@ export function SiteFooter() {
                 <Sprout className="h-5.5 w-5.5" aria-hidden="true" />
               </span>
               <div className="leading-tight">
-                <p className="text-base font-bold">Kisan Vani</p>
+                <p className="text-base font-bold">Kisan Seva</p>
                 <p className="text-xs text-green-200/80">Voice-Based Farmer Assistant</p>
               </div>
             </div>
@@ -59,7 +59,7 @@ export function SiteFooter() {
             project notebook — AIMS &amp; RC, Bengaluru
           </p>
           <p className="mt-2 text-xs text-green-200/60">
-            © {new Date().getFullYear()} Kisan Vani · Voice-Based Farmer Assistant
+            © {new Date().getFullYear()} Kisan Seva · Voice-Based Farmer Assistant
           </p>
         </div>
       </div>
