@@ -53,7 +53,7 @@ export function Hero() {
           </motion.h1>
 
           <motion.p variants={fadeUp} className="max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
-            Kisan Vani is a voice-based assistant for farmers. Ask anything out loud — about crop
+            Kisan Seva is a voice-based assistant for farmers. Ask anything out loud — about crop
             diseases, weather, or market prices — and get instant advice spoken back in your own
             language. No typing needed, no apps to learn.
           </motion.p>

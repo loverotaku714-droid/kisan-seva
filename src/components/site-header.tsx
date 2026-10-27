@@ -15,12 +15,12 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-green-900/10 bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <a href="#top" className="flex items-center gap-2.5" aria-label="Kisan Vani home">
+        <a href="#top" className="flex items-center gap-2.5" aria-label="Kisan Seva home">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <Sprout className="h-5.5 w-5.5" aria-hidden="true" />
           </span>
           <span className="leading-tight">
-            <span className="block text-base font-bold tracking-tight text-foreground">Kisan Vani</span>
+            <span className="block text-base font-bold tracking-tight text-foreground">Kisan Seva</span>
             <span className="block text-[11px] font-medium text-muted-foreground">
               Voice-Based Farmer Assistant
             </span>

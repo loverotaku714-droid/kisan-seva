@@ -72,7 +72,7 @@ export function RecentAdvisories() {
               Recent Advisories
             </h2>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-              Every question asked through Kisan Vani is logged here — building a growing knowledge
+              Every question asked through Kisan Seva is logged here — building a growing knowledge
               record of what farmers in the field are asking.
             </p>
           </motion.div>
