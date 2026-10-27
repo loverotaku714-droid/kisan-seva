@@ -1,0 +1,14 @@
+# Render Blueprint — deploy via "New + → Blueprint" and Render reads this file.
+# Uses the Docker runtime so the included Dockerfile handles everything
+# (bun install, prisma, build, schema sync at boot).
+services:
+  - type: web
+    name: kisan-seva
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        value: file:/app/db/custom.db

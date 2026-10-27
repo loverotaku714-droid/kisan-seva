@@ -19,8 +19,8 @@ Railway runs the build + keeps SQLite data on a volume.
 
 1. Go to [railway.com](https://railway.com) → **New Project → Deploy from GitHub repo** → pick `kisan-seva`
 2. Railway auto-detects Next.js. Add these settings:
-   - **Build command:** `bun install && bunx prisma generate && bun run build`
-   - **Start command:** `mkdir -p /data && DATABASE_URL=file:/data/custom.db bunx prisma db push --skip-generate && DATABASE_URL=file:/data/custom.db bun .next/standalone/server.js`
+   - **Build command:** `npm install && npx prisma generate && npm run build`
+   - **Start command:** `mkdir -p /data && DATABASE_URL=file:/data/custom.db npx prisma db push --skip-generate && DATABASE_URL=file:/data/custom.db node .next/standalone/server.js`
 3. **Variables:** add `AUTH_SECRET` (any long random string)
 4. **Volumes:** add a volume mounted at `/data` (so the database survives restarts)
 5. **Settings → Networking → Generate Domain** → your public URL 🎉
@@ -28,9 +28,9 @@ Railway runs the build + keeps SQLite data on a volume.
 ## Option B — Render
 
 1. Go to [render.com](https://render.com) → **New → Web Service** → connect the GitHub repo
-2. **Runtime:** Docker (it will use the included `Dockerfile`) — or set:
-   - **Build command:** `bun install && bunx prisma generate && bun run build`
-   - **Start command:** `bun .next/standalone/server.js`
+2. **Runtime:** Docker (it will use the included `Dockerfile`) — or if you prefer the Node runtime, set:
+   - **Build command:** `npm install && npx prisma generate && npm run build`
+   - **Start command:** `npm run start` (starts with plain `node` — no bun needed)
 3. **Environment:** `DATABASE_URL=file:/opt/render/project/src/db/custom.db`, `AUTH_SECRET=…`
 4. Deploy → public URL.
 
@@ -59,6 +59,12 @@ docker run -d -p 3000:3000 -v kisan-db:/app/db -e AUTH_SECRET=change-me kisan-se
 
 Then open `http://<your-server>:3000`. Put Nginx/Caddy in front for HTTPS, or push
 the image to Fly.io / Google Cloud Run / Azure Container Apps.
+
+## Option E — Render Blueprint (zero-config)
+
+A `render.yaml` blueprint is included: on Render choose **New + → Blueprint**
+instead of Web Service — Render reads `render.yaml` and configures the Docker
+runtime, health check and environment variables automatically.
 
 ---
 
