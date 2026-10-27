@@ -75,6 +75,11 @@ snap a leaf photo, or play the daily bulletin.
 > **Note:** Speech recognition (STT) works best in Chrome/Edge. The typed-question
 > fallback works everywhere.
 
+### 🌍 Going live
+
+See **[DEPLOY.md](./DEPLOY.md)** for step-by-step guides: Railway, Render, Vercel
+and Docker (a production `Dockerfile` is included).
+
 ---
 
 ## 📁 Project Structure

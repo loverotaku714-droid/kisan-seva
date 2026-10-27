@@ -1,0 +1,20 @@
+node_modules
+.next
+.git
+db/*.db
+db/*.db-journal
+.env
+*.log
+dev.log
+server.log
+
+# not needed inside the runtime image
+scripts
+download
+examples
+mini-services
+tests
+skills
+worklog.md
+.zscripts
+.DS_Store
