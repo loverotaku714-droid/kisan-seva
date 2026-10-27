@@ -7,8 +7,9 @@ import { scrollToAssistant } from '@/lib/assistant-store'
 export function SiteHeader() {
   const navItems = [
     { label: 'Assistant', href: '#assistant' },
+    { label: 'Crop Doctor', href: '#doctor' },
+    { label: 'Bulletin', href: '#bulletin' },
     { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Advisories', href: '#advisories' },
     { label: 'Recent', href: '#recent' },
   ]
 

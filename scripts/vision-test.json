@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "This is a **simple, stylized illustration of a tree** with the following features:\n\n- **Large green oval** representing the tree's canopy/leaves\n- **Brown vertical line** at the bottom serving as the trunk\n- **Yellow/orange circular dots** (about 5-6) scattered across the canopy, likely representing fruit or blossoms\n- **Purple/brownish circular dots** (about 6-7) also on the leaves, possibly representing different fruit, shadows, or decorative elements\n- A **thin dark diagonal line** running through part of the canopy (perhaps a branch or stylistic detail)\n- **Pale cream/beige background**\n\nThe image has a minimalist, flat-design aesthetic—resembling a basic icon or children's book illustration.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1793118892,
+  "id": "202610280034496a3f8d4f1a774f63",
+  "model": "glm-5v-turbo",
+  "object": "chat.completion",
+  "request_id": "202610280034496a3f8d4f1a774f63",
+  "usage": {
+    "completion_tokens": 159,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 160,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 319
+  }
+}

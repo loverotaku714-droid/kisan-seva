@@ -633,8 +633,8 @@ export function VoiceAssistant() {
               )}
             </div>
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-              Demo prototype · Weather &amp; price values are simulated for demonstration. Always
-              confirm with your local agriculture officer before acting.
+              Weather answers use live Open-Meteo data · Market price values are simulated for
+              demonstration. Always confirm with your local agriculture officer before acting.
             </p>
           </div>
         </div>
