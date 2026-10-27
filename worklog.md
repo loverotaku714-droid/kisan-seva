@@ -120,3 +120,20 @@ Work Log:
 Stage Summary:
 - Code live at https://github.com/loverotaku714-droid/kisan-seva (public, main branch, 140 files, no secrets)
 - Advised user to revoke/regenerate the shared PAT and that repo is under loverotaku714-droid (can re-push to ASJADAHMED07 if they provide a token from that account)
+
+---
+Task ID: 7
+Agent: Main agent (Z.ai)
+Task: User asked "deploy live" + which package system to use (Maven/NuGet/RubyGems/npm/Containers)
+
+Work Log:
+- Answered package question: npm (JS ecosystem — project is Next.js/Node; project itself uses bun, npm-compatible). Maven=Java, NuGet=.NET, RubyGems=Ruby, Containers=deployment packaging not a package manager
+- Verified next.config.ts already has output:"standalone" (container/serverless ready)
+- Created Dockerfile (oven/bun:1, layered install, prisma generate + build, runtime prisma db push + standalone server, /app/db volume for SQLite persistence)
+- Created .dockerignore (excludes node_modules/.next/db/logs/dev artifacts)
+- Created DEPLOY.md: env var table (DATABASE_URL/AUTH_SECRET), step-by-step for Railway (volume), Render (Docker), Vercel (SQLite ephemerality caveat + Turso suggestion), Docker/VPS commands; STT-needs-HTTPS note
+- README linked to DEPLOY.md; committed and pushed to GitHub (previous PAT still valid, used inline without storing)
+
+Stage Summary:
+- Repo now fully deployment-ready: b35dc03 pushed with Dockerfile + DEPLOY.md
+- Going live needs user action: connect repo at Railway/Render/Vercel (browser, ~3 min) or provide a host token for me to deploy via API
