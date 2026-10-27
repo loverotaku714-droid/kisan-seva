@@ -50,5 +50,10 @@ test
 prompt
 
 server.log
+
+# local database (schema recreated via `bun run db:push`)
+db/*.db
+db/*.db-journal
+
 # Skills directory
 /skills/
