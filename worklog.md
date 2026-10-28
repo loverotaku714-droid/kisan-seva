@@ -219,3 +219,19 @@ Stage Summary:
 - AI features are now deployable anywhere: on Render, setting ZAI_API_KEY (+ optional ZAI_BASE_URL/ZAI_MODEL) in the service env immediately enables real voice answers + photo diagnosis
 - Two commits pending push: 04f3b78 (Dockerfile HOSTNAME hardening) + 8cbf943 (AI env config)
 - Site live & healthy at https://kisan-seva-z764.onrender.com; duplicate services deleted by user via dashboard
+
+---
+Task ID: 11
+Agent: Main agent (Z.ai)
+Task: User provided fresh GitHub PAT (ghp_ps8... — belongs to loverotaku714-droid, display name "ASJADAHMED07") — push pending commits and verify Render auto-deploy
+
+Work Log:
+- Verified token: full admin/push access to loverotaku714-droid/kisan-seva; account display name explains the earlier username confusion
+- Pushed main: be2cac6..abfac14 (includes 04f3b78 Dockerfile HOSTNAME hardening + 8cbf943 AI env-config fallback)
+- Watched Render auto-deploy: build marker changed nECp2yrr9x5MGIt_LBzAf → XFIdJReZk2abMGhFy9pnr at poll 4 (~2 min) — GitHub→Render webhook pipeline CONFIRMED working end-to-end
+- Post-deploy health: / 200, /login 200, /api/auth/me 200, /api/history 200; /api/ask now returns code:'ai_not_configured' (503) — new code verified running on production
+- Token used inline only, not stored in .git/config; user advised to revoke it in chat
+
+Stage Summary:
+- Both queued commits are LIVE on production; pipeline push→auto-deploy verified
+- Remaining user action: add ZAI_API_KEY (+ optional ZAI_MODEL) in Render env to enable real AI answers; revoke the pasted PAT when iteration work is done
