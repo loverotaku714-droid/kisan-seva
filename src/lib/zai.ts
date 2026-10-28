@@ -30,7 +30,7 @@ export interface ZaiClient {
 }
 
 /**
- * Plain OpenAI-compatible chat call.
+ * Plain OpenAI-compatible chat call (single attempt, no retries).
  * Note: we strip SDK-specific fields (`thinking`, `stream`) because providers like
  * Google's OpenAI-compat endpoint reject unknown body fields, and we always use the
  * standard /chat/completions path (multimodal `image_url` content included), which
@@ -60,14 +60,76 @@ async function openAiCompatibleChat(
   return (await res.json()) as ChatResponseLike
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+/**
+ * Gemini free tier: the newest flash model frequently answers 503 "high demand".
+ * We transparently fail over to older-but-stable flash models so farmers always
+ * get an answer. All Gemini flash models are multimodal, so this is safe for
+ * both text chat and photo diagnosis.
+ */
+const GEMINI_FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']
+
+function parseStatus(err: Error): number {
+  return Number(err.message.match(/status (\d{3})/)?.[1] ?? 0)
+}
+
+/**
+ * Build the ordered model list for one request:
+ * primary model first; for Gemini also the free-tier fallback models (deduped).
+ */
+function modelChain(primary: string | undefined, baseUrl: string): (string | undefined)[] {
+  const isGemini = /generativelanguage\.googleapis\.com/i.test(baseUrl)
+  const list = [primary, ...(isGemini ? GEMINI_FALLBACK_MODELS : [])]
+  const chain = [...new Set(list.filter((m): m is string => Boolean(m)))]
+  return chain.length > 0 ? chain : [undefined]
+}
+
+/**
+ * Resilient chat: retries transient errors on the same model once, then walks
+ * down the model chain. Fatal errors (bad key 401/403, malformed body 400)
+ * fail fast; unknown-model 404 jumps straight to the next model.
+ */
+async function resilientChat(
+  baseUrl: string,
+  apiKey: string,
+  body: Record<string, unknown>,
+  maxModels: number,
+): Promise<ChatResponseLike> {
+  const primary = typeof body.model === 'string' ? body.model : undefined
+  const chain = modelChain(primary, baseUrl).slice(0, maxModels)
+  let lastError = new Error('AI_PROVIDER_ERROR: no model attempted')
+
+  for (let i = 0; i < chain.length; i++) {
+    const model = chain[i]
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await openAiCompatibleChat(baseUrl, apiKey, { ...body, model })
+      } catch (e) {
+        lastError = e instanceof Error ? e : new Error(String(e))
+        const status = parseStatus(lastError)
+        // Config errors won't be fixed by another model — fail fast.
+        if (status === 400 || status === 401 || status === 403) throw lastError
+        // Unknown model — skip straight to the next one in the chain.
+        if (status === 404) break
+        // Transient (429/5xx): retry same model once after a short backoff.
+        if (attempt === 0) await sleep(1000)
+      }
+    }
+    if (i < chain.length - 1) await sleep(400)
+  }
+  throw lastError
+}
+
 /** Env-mode adapter: provider-agnostic client (Gemini, OpenAI, OpenRouter, Z.ai open platform...). */
 function envClient(baseUrl: string, apiKey: string): ZaiClient {
-  const call = (body: Record<string, unknown>) => openAiCompatibleChat(baseUrl, apiKey, body)
   return {
     chat: {
       completions: {
-        create: call,
-        createVision: call,
+        // Text answers: short generations, allow walking further down the chain.
+        create: (body) => resilientChat(baseUrl, apiKey, body, 4),
+        // Photo diagnosis: image payloads are slow — keep the budget tighter.
+        createVision: (body) => resilientChat(baseUrl, apiKey, body, 3),
       },
     },
   }
