@@ -134,16 +134,10 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     console.error('Ask API error:', e)
-    if (msg.startsWith('AI_NOT_CONFIGURED')) {
-      return NextResponse.json(
-        { error: 'The assistant is busy right now. Please try again in a moment.', code: 'ai_not_configured' },
-        { status: 503 }
-      )
-    }
 
-    // Graceful degradation: AI provider failed (quota/outage) — never leave a
-    // farmer empty-handed. Answer from the rule-based advisor with live
-    // weather + mandi data instead. Marked with source:"fallback".
+    // Graceful degradation: AI missing (no key) OR provider failed (quota/
+    // outage) — never leave a farmer empty-handed. Answer from the rule-based
+    // advisor with live weather + mandi data instead. Marked source:"fallback".
     const fbWeather = weather ?? (await getWeather(detectDistrict(question)))
     const fb = buildFallbackAnswer(question, language, fbWeather)
     try {
@@ -159,6 +153,13 @@ export async function POST(req: NextRequest) {
     } catch (dbErr) {
       console.error('Fallback DB write failed:', dbErr)
     }
-    return NextResponse.json({ id: null, category: fb.category, answer: fb.answer, language, source: 'fallback' })
+    return NextResponse.json({
+      id: null,
+      category: fb.category,
+      answer: fb.answer,
+      language,
+      source: 'fallback',
+      ...(msg.startsWith('AI_NOT_CONFIGURED') ? { code: 'ai_not_configured' } : {}),
+    })
   }
 }
