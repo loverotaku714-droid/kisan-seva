@@ -68,10 +68,13 @@ function parseLlmJson(raw: string): { category: string; answer: string } {
 }
 
 export async function POST(req: NextRequest) {
+  let question = ''
+  let language: Language = 'en'
+  let weather: Awaited<ReturnType<typeof getWeather>> | null = null
   try {
     const body = await req.json()
-    const question: string = String(body?.text ?? '').trim()
-    const language: Language = (VALID_LANGUAGES as readonly string[]).includes(body?.language)
+    question = String(body?.text ?? '').trim()
+    language = (VALID_LANGUAGES as readonly string[]).includes(body?.language)
       ? (body.language as Language)
       : 'en'
 
@@ -82,7 +85,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Question is too long (max 500 characters)' }, { status: 400 })
     }
 
-    const weather = await getWeather(detectDistrict(question))
+    weather = await getWeather(detectDistrict(question))
     const zai = await getZAI()
     const completion = await zai.chat.completions.create({
       model: chatModel(),
@@ -141,7 +144,8 @@ export async function POST(req: NextRequest) {
     // Graceful degradation: AI provider failed (quota/outage) — never leave a
     // farmer empty-handed. Answer from the rule-based advisor with live
     // weather + mandi data instead. Marked with source:"fallback".
-    const fb = buildFallbackAnswer(question, language, weather)
+    const fbWeather = weather ?? (await getWeather(detectDistrict(question)))
+    const fb = buildFallbackAnswer(question, language, fbWeather)
     try {
       await db.query.create({
         data: {
