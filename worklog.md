@@ -181,3 +181,23 @@ Stage Summary:
 - Deliverables: download/Kisan_Seva_Mini_Project_Synopsis.pdf (3 pages, 47KB) and download/Kisan_Seva_Mini_Project_Synopsis.docx (3 pages, editable)
 - Team details left blank (Student 1-4 rows + Project Guide) for user to fill names/USNs
 - Scripts persisted in scripts/ for future edits
+
+---
+Task ID: 8 (RESUMED & COMPLETED)
+Agent: Main agent (Z.ai)
+Task: Fix Render 502 on https://kisan-seva-z764.onrender.com using user's Render API key
+
+Work Log:
+- API listed 3 services (user created 3 attempts yesterday): kisan-seva (z764, docker, srv-dbge9nq9lscs73dcbs0g), kisan-seva-live (docker, srv-dbgelluk1f9s73etbj30), kisan-seva-node (node, srv-dbgeol8u01pc73cdq740); all from repo loverotaku714-droid/kisan-seva, all deploys "live" with passing health checks, yet ALL returned instant empty-body 502 to public traffic
+- Log analysis: apps boot perfectly (prisma db created+synced, "Next.js Ready in 603ms", listening on :10000) but public router still 502; no Render platform incident; services not suspended
+- ROOT CAUSE FOUND: Next standalone server template reads `const hostname = process.env.HOSTNAME || '0.0.0.0'`; Render/k8s injects HOSTNAME=<pod-name> (log showed "Local: http://srv-...-hibernate-...:10000"), so server bound to pod IP only — internal deploy health checks passed but public router connect failed → instant 502. Verified in node_modules/next/dist/build/utils.js
+- FIX (no code push needed): PUT /env-vars on all 3 services adding HOSTNAME=0.0.0.0 (explicit pod env overrides runtime-injected pod name) + added DATABASE_URL & new AUTH_SECRET to z764 (it only had PORT)
+- Env API update did NOT auto-deploy → POSTed /deploys (HTTP 202) on all 3; polled to "live" in ~2 min
+- VERIFIED: all 3 URLs HTTP 200 with correct title; /login 200; /api/auth/me {"user":null}; /api/history {"items":[]}; /api/bulletin?district=Mandya returns full spoken bulletin (29°C, mandi prices)
+- Local commit 04f3b78 (Dockerfile ENV HOSTNAME=0.0.0.0 + inline CMD override) created as permanent hardening but NOT pushed — GitHub PAT was scrubbed yesterday, no push access this session
+- Discovered z-ai-web-dev-sdk requires .z-ai-config (sandbox has /etc/.z-ai-config → internal-api.z.ai gateway); NOT copied to Render (internal credentials — needs user's own Z.ai/public API key + small code change to read env-based config)
+- On Render free tier AI-text features (/api/ask, /api/diagnose) return graceful fallback; browser STT/TTS + bulletin + login/history all work; DB ephemeral (resets each spin-down)
+
+Stage Summary:
+- DEPLOYMENT FIXED & VERIFIED: https://kisan-seva-z764.onrender.com (also -live and -node) all HTTP 200 serving Kisan Seva
+- Pending user decisions: (1) revoke Render API key rnd_dDt... + GitHub PAT (both pasted in chat); (2) provide GitHub PAT to push 04f3b78; (3) provide own AI API key (Z.ai/OpenAI-compatible) to enable /api/ask + /api/diagnose on Render; (4) optionally delete the 2 extra duplicate services; (5) demo login 9812345678/harvest42 does NOT exist on Render (fresh DB) — sign up anew
