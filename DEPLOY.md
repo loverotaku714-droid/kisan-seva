@@ -9,6 +9,11 @@ to most flexible. All of them start from the GitHub repo — no code changes nee
 |---|---|---|---|
 | `DATABASE_URL` | yes | `file:/data/custom.db` | SQLite location (keep on a persistent disk) |
 | `AUTH_SECRET` | recommended | any long random string | Signs login session cookies (falls back to a dev default) |
+| `HOSTNAME` | recommended (Render) | `0.0.0.0` | Forces Next.js standalone to bind all interfaces — without it Render returns 502 |
+| `ZAI_API_KEY` | for AI answers | your key | Enables voice answers (`/api/ask`) + photo diagnosis (`/api/diagnose`). Without it those features return a friendly fallback |
+| `ZAI_BASE_URL` | optional | `https://api.z.ai/api/paas/v4` | Any OpenAI-compatible endpoint (this default = Z.ai public API) |
+| `ZAI_MODEL` | optional | `glm-4.5-air` | Text-chat model (server default if omitted) |
+| `ZAI_VISION_MODEL` | optional | `glm-5v-turbo` | Vision model for the Crop Doctor |
 | `NODE_ENV` | auto | `production` | Set automatically by most hosts |
 
 ---

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ZAI from 'z-ai-web-dev-sdk'
+import { getZAI, visionModel } from '@/lib/zai'
 import { db } from '@/lib/db'
 import { LANGUAGE_NAMES, LANGUAGE_LABELS, type Language } from '@/lib/farm-data'
 import { getSessionUser } from '@/lib/auth'
@@ -65,9 +65,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const zai = await ZAI.create()
+    const zai = await getZAI()
     const completion = await zai.chat.completions.createVision({
-      model: 'glm-5v-turbo',
+      model: visionModel(),
       thinking: { type: 'disabled' },
       messages: [
         {
@@ -135,7 +135,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
     console.error('Diagnose API error:', e)
+    if (msg.startsWith('AI_NOT_CONFIGURED')) {
+      return NextResponse.json(
+        { error: 'The Crop Doctor is busy right now. Please try again in a moment.', code: 'ai_not_configured' },
+        { status: 503 }
+      )
+    }
     return NextResponse.json(
       { error: 'The Crop Doctor is busy right now. Please try again in a moment.' },
       { status: 500 }

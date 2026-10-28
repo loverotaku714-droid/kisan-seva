@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ZAI from 'z-ai-web-dev-sdk'
+import { getZAI, chatModel } from '@/lib/zai'
 import { db } from '@/lib/db'
 import {
   LANGUAGE_NAMES,
@@ -82,8 +82,9 @@ export async function POST(req: NextRequest) {
     }
 
     const weather = await getWeather(detectDistrict(question))
-    const zai = await ZAI.create()
+    const zai = await getZAI()
     const completion = await zai.chat.completions.create({
+      model: chatModel(),
       messages: [
         { role: 'system', content: buildSystemPrompt(question, language, weather) },
         { role: 'user', content: question },
@@ -127,7 +128,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ id: savedId, category, answer, language })
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
     console.error('Ask API error:', e)
+    if (msg.startsWith('AI_NOT_CONFIGURED')) {
+      return NextResponse.json(
+        { error: 'The assistant is busy right now. Please try again in a moment.', code: 'ai_not_configured' },
+        { status: 503 }
+      )
+    }
     return NextResponse.json(
       { error: 'The assistant is busy right now. Please try again in a moment.' },
       { status: 500 }
