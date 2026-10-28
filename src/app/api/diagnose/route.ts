@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
       {
         error: 'The Crop Doctor is busy right now. Please try again in a moment.',
         ...(msg.startsWith('AI_PROVIDER_ERROR')
-          ? { code: 'ai_provider_error', detail: msg.slice(0, 220) }
+          ? { code: 'ai_provider_error', detail: msg.slice(0, 900) }
           : {}),
       },
       { status: 500 }

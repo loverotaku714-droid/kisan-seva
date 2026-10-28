@@ -9,6 +9,7 @@ import {
   type Language,
 } from '@/lib/farm-data'
 import { getWeather } from '@/lib/weather'
+import { buildFallbackAnswer } from '@/lib/fallback-advice'
 import { getSessionUser } from '@/lib/auth'
 
 export const maxDuration = 60
@@ -136,14 +137,24 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       )
     }
-    return NextResponse.json(
-      {
-        error: 'The assistant is busy right now. Please try again in a moment.',
-        ...(msg.startsWith('AI_PROVIDER_ERROR')
-          ? { code: 'ai_provider_error', detail: msg.slice(0, 220) }
-          : {}),
-      },
-      { status: 500 }
-    )
+
+    // Graceful degradation: AI provider failed (quota/outage) — never leave a
+    // farmer empty-handed. Answer from the rule-based advisor with live
+    // weather + mandi data instead. Marked with source:"fallback".
+    const fb = buildFallbackAnswer(question, language, weather)
+    try {
+      await db.query.create({
+        data: {
+          question,
+          answer: fb.answer,
+          category: fb.category,
+          language,
+          userId: (await getSessionUser(req.cookies.get('kisan_session')?.value))?.id ?? null,
+        },
+      })
+    } catch (dbErr) {
+      console.error('Fallback DB write failed:', dbErr)
+    }
+    return NextResponse.json({ id: null, category: fb.category, answer: fb.answer, language, source: 'fallback' })
   }
 }
