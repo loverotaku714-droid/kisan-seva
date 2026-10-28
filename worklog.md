@@ -162,3 +162,22 @@ NEXT SESSION RESUME STEPS (in order):
 6. Remind user to revoke the shared Render API key (and the GitHub PAT) — both were pasted in chat
 - Other state: GitHub repo loverotaku714-droid/kisan-seva (public, main) is source of truth; Render likely auto-syncs from it; demo login 9812345678 / harvest42
 - Optional backlog (never requested): move repo to ASJADAHMED07 account; "My Questions" history page; profile edit
+
+---
+Task ID: 9
+Agent: Main agent (Z.ai)
+Task: Create a MINI PROJECT SYNOPSIS for Kisan Seva, modeled on the user's uploaded sample (AI-Based College FAQ Chatbot synopsis). Deliverables: PDF + editable Word.
+
+Work Log:
+- Clarified via AskUserQuestion: Both formats; same institute (Akash Institute of Engineering and Technology, Dept. of AI & Data Science); blank Student/USN rows (user fills team details); 5th Sem 2026-27; blank guide line; real tech stack; compact 2-3 pages
+- Loaded pdf skill (report brief + fonts + overflow/palette/pagination/typography/fill-engine) and docx skill (create route template-following mode + docx-js-core + common-rules)
+- Ran palette.cascade (muted earth tones: HEADER_FILL #524b36, BORDER #d5d2cb, TEXT #181816)
+- Built PDF via ReportLab (scripts/kisan_synopsis_pdf.py): 14-section structure mirroring sample (Intro, Problem, Objectives, Proposed System, Methodology, Architecture, Tech table, Expected Outcome, Scope, HW, SW, Conclusion, Team Details tables, References); FreeSerif family; no cover/TOC (template fidelity); SimpleDocTemplate + build; CondPageBreak orphan prevention; all table cells Paragraph(); hAlign CENTER; footer page numbers
+- Iterated 3x compression to hit 3 pages (margins 0.8in, leading trims, prose trims, refs CondPageBreak 70)
+- Preflight passed: code.sanitize, meta.brand, font.check (0 issues), pages.clean (0 blank), pdf_qa 11 passed / 1 non-applicable warning (cover full-bleed - doc has no cover by design)
+- Built DOCX via docx-js (scripts/kisan_synopsis_docx.js): template-following mode (no cover recipe), Times New Roman, HEADING_1 styles, ShadingType.CLEAR, percentage widths, tableHeader/cantSplit/keepNext, footer PageNumber.CURRENT; postcheck 9/9 after unifying line spacing to 312; compressed 4 pages -> 3 pages (10.5pt body, 1.8-1.9cm margins); verified via LibreOffice render
+
+Stage Summary:
+- Deliverables: download/Kisan_Seva_Mini_Project_Synopsis.pdf (3 pages, 47KB) and download/Kisan_Seva_Mini_Project_Synopsis.docx (3 pages, editable)
+- Team details left blank (Student 1-4 rows + Project Guide) for user to fill names/USNs
+- Scripts persisted in scripts/ for future edits
