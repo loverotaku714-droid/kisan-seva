@@ -235,3 +235,20 @@ Work Log:
 Stage Summary:
 - Both queued commits are LIVE on production; pipeline push→auto-deploy verified
 - Remaining user action: add ZAI_API_KEY (+ optional ZAI_MODEL) in Render env to enable real AI answers; revoke the pasted PAT when iteration work is done
+
+---
+Task ID: 12
+Agent: Main agent (Z.ai)
+Task: User said "paste it at git profile" — wire the GitHub profile to the project
+
+Work Log:
+- Diagnosed why the profile looked disconnected: ALL kisan-seva commits authored as "Z User <z@container>" (sandbox default) — gray avatars, no profile attribution; profile also has no profile-README repo
+- Resolved numeric GitHub user ID 300504935 via avatar redirect (API rate-limited); attribution email = 300504935+loverotaku714-droid@users.noreply.github.com
+- Set git identity (global + repo): user.name ASJADAHMED07, user.email = noreply above — all future commits attribute to the profile automatically
+- Authored profile README (download/github-profile/README.md): featured Kisan Seva block with live demo link + capability table + stack badges, other repos, skills badges, github-readme-stats cards
+- Wrote scripts/publish_github_profile.sh: creates loverotaku714-droid/loverotaku714-droid profile repo, pushes README, PATCHes kisan-seva homepage to the Render demo URL; optional --reauthor flag rewrites past-commit authorship (filter-branch) and force-pushes main; token used inline only, never stored
+- No push performed this session: PAT from Task 11 not persisted (by design) and old one should be revoked; script is ready to run the moment a fresh token is provided
+
+Stage Summary:
+- Identity fixed locally; publish pipeline one command away: bash scripts/publish_github_profile.sh <FRESH_TOKEN> [--reauthor]
+- First commit under the new identity is this worklog entry
