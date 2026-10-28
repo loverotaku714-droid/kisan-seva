@@ -22,9 +22,10 @@ function escapeRe(s: string): string {
 }
 function hasWord(q: string, word: string): boolean {
   // Normalize punctuation (?, ., ।, quotes...) to spaces so trailing
-  // punctuation never breaks whole-word matching. Unicode-aware: keeps
-  // English, Devanagari and Kannada letters intact.
-  const norm = q.replace(/[^\p{L}\p{N}]+/gu, ' ')
+  // punctuation never breaks whole-word matching. Unicode-aware: \p{M} keeps
+  // Devanagari/Kannada matras & anusvaras (they are marks, not letters —
+  // without it, "मंडी" would be shredded to "म ड").
+  const norm = q.replace(/[^\p{L}\p{N}\p{M}]+/gu, ' ')
   if (word.endsWith('*')) {
     return new RegExp(`(^|\\s)${escapeRe(word.slice(0, -1))}`).test(norm)
   }
