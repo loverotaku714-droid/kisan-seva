@@ -284,3 +284,9 @@ Task 13 ADDENDUM (completion):
 - AI path verified working earlier (Hindi wheat-pest answered by real Gemini); quota resets midnight Pacific (~12:30pm IST) or user can enable billing
 - NOTE: sandbox background auto-committer created UUID commit 48e7e66 mid-session; final commit caf89f3; all pushed 4d0d516..caf89f3
 - Token used for 4 pushes this session; reminded user to revoke all three PATs (ghp_ps8..., ghp_GVOd..., ghp_Qgpp...)
+
+Task 13 FINAL (pushed, live-verified):
+- User provided fresh PAT after revoking previous; pushed 3 fix commits (572692e..28b7972): punctuation-tolerant matching, unicode \p{M} matra preservation, Hinglish price keywords
+- Added permanent E2E test scripts/test_fallback_e2e.mjs (16 cases: EN/HI/KN x price/weather/disease/general + edge cases) — 16/16 passing; test runner initially had wrong expected price numbers (real table: tomato 1200-1800, onion 1400-2200) — code was right
+- Live verification after deploy: EN "tomato price?" -> category price with correct 1200-1800 rates (was general before fix); HI and KN price questions -> category price, answered
+- All commits authored ASJADAHMED07 <noreply attribution>; token to be revoked by user after this push
