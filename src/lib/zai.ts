@@ -54,7 +54,7 @@ async function openAiCompatibleChat(
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
-    const detail = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 300)
+    const detail = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 600)
     throw new Error(`AI_PROVIDER_ERROR: status ${res.status} ${detail}`)
   }
   return (await res.json()) as ChatResponseLike
@@ -75,6 +75,18 @@ function parseStatus(err: Error): number {
 }
 
 /**
+ * Server-wide upstream pacing: keeps at least this gap between consecutive
+ * provider calls so bursts (retries, parallel farmers) don't burn per-minute
+ * free-tier quotas instantly.
+ */
+let lastUpstreamAt = 0
+async function pace(minGapMs = 1500): Promise<void> {
+  const wait = lastUpstreamAt + minGapMs - Date.now()
+  if (wait > 0) await sleep(wait)
+  lastUpstreamAt = Date.now()
+}
+
+/**
  * Build the ordered model list for one request:
  * primary model first; for Gemini also the free-tier fallback models (deduped).
  */
@@ -86,9 +98,12 @@ function modelChain(primary: string | undefined, baseUrl: string): (string | und
 }
 
 /**
- * Resilient chat: retries transient errors on the same model once, then walks
- * down the model chain. Fatal errors (bad key 401/403, malformed body 400)
- * fail fast; unknown-model 404 jumps straight to the next model.
+ * Resilient chat — walks the model chain, spending ONE attempt per model:
+ *  - 429 (quota): quota buckets are per-model on Gemini, so moving to the next
+ *    model is the only useful reaction; retrying the same model wastes calls.
+ *  - 404 (unknown/retired model): skip to the next model.
+ *  - 5xx (overloaded/gateway): retry the SAME model once after a backoff.
+ *  - 400/401/403 (bad request/key): fatal, fail fast.
  */
 async function resilientChat(
   baseUrl: string,
@@ -100,13 +115,13 @@ async function resilientChat(
   const chain = modelChain(primary, baseUrl).slice(0, maxModels)
   // Report the PRIMARY model's failure at the end (most diagnostic); later
   // fallback errors (e.g. retired-model 404s) are noise.
-  let lastError = new Error('AI_PROVIDER_ERROR: no model attempted')
-
   let firstError: Error | null = null
+  let lastError = new Error('AI_PROVIDER_ERROR: no model attempted')
 
   for (let i = 0; i < chain.length; i++) {
     const model = chain[i]
     for (let attempt = 0; attempt < 2; attempt++) {
+      await pace()
       try {
         return await openAiCompatibleChat(baseUrl, apiKey, { ...body, model })
       } catch (e) {
@@ -116,13 +131,12 @@ async function resilientChat(
         const status = parseStatus(err)
         // Config errors won't be fixed by another model — fail fast.
         if (status === 400 || status === 401 || status === 403) throw err
-        // Unknown/retired model — skip straight to the next one in the chain.
-        if (status === 404) break
-        // Transient (429/5xx): retry same model once after a short backoff.
+        // Quota exhausted / unknown model — next model (fresh quota bucket).
+        if (status === 429 || status === 404) break
+        // Overloaded (5xx): retry same model once after a short backoff.
         if (attempt === 0) await sleep(1000)
       }
     }
-    if (i < chain.length - 1) await sleep(400)
   }
   throw firstError ?? lastError
 }
