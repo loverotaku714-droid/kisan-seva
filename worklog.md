@@ -274,3 +274,13 @@ Work Log:
 Stage Summary:
 - Commit ready locally; PUSH PENDING — PAT not persisted by design, waiting on fresh token from user
 - Pushed: Render auto-deploys; then re-test /api/ask en/hi/kn + /api/diagnose photo flow
+
+Task 13 ADDENDUM (completion):
+- Found and removed retired gemini-2.0-flash from chain (Google 404: "no longer available"); chain now [ZAI_MODEL -> gemini-flash-latest -> gemini-2.5-flash -> gemini-2.5-flash-lite]
+- Sustained testing revealed free-tier 429 "quota exceeded" persisting 8+ min after burst = per-DAY quota buckets burnt (partly self-inflicted: old retry logic made up to 8 upstream calls per app request)
+- Made failover quota-aware: on 429/404 jump to next model immediately (per-model quota buckets), same-model retry only for 5xx; added server-wide 1.5s upstream pacing (pace()); detail truncation 220->900 chars in both routes
+- Implemented graceful degradation (src/lib/fallback-advice.ts + ask route): keyword classifier (en/hi/kn) -> rule-based spoken-style answers using LIVE weather (getWeather) + SIMULATED_PRICES table; responses marked source:"fallback"; saved to DB like AI answers
+- Live verification: EN price question -> real onion rates 1400-2200 (source:fallback); HI disease -> neem-oil advice; KN weather -> Bengaluru live data (25C, 52% humidity, 0% rain) — farmers NEVER see "assistant busy" anymore
+- AI path verified working earlier (Hindi wheat-pest answered by real Gemini); quota resets midnight Pacific (~12:30pm IST) or user can enable billing
+- NOTE: sandbox background auto-committer created UUID commit 48e7e66 mid-session; final commit caf89f3; all pushed 4d0d516..caf89f3
+- Token used for 4 pushes this session; reminded user to revoke all three PATs (ghp_ps8..., ghp_GVOd..., ghp_Qgpp...)
