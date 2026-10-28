@@ -68,7 +68,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
  * get an answer. All Gemini flash models are multimodal, so this is safe for
  * both text chat and photo diagnosis.
  */
-const GEMINI_FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']
+const GEMINI_FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']
 
 function parseStatus(err: Error): number {
   return Number(err.message.match(/status (\d{3})/)?.[1] ?? 0)
@@ -98,7 +98,11 @@ async function resilientChat(
 ): Promise<ChatResponseLike> {
   const primary = typeof body.model === 'string' ? body.model : undefined
   const chain = modelChain(primary, baseUrl).slice(0, maxModels)
+  // Report the PRIMARY model's failure at the end (most diagnostic); later
+  // fallback errors (e.g. retired-model 404s) are noise.
   let lastError = new Error('AI_PROVIDER_ERROR: no model attempted')
+
+  let firstError: Error | null = null
 
   for (let i = 0; i < chain.length; i++) {
     const model = chain[i]
@@ -106,11 +110,13 @@ async function resilientChat(
       try {
         return await openAiCompatibleChat(baseUrl, apiKey, { ...body, model })
       } catch (e) {
-        lastError = e instanceof Error ? e : new Error(String(e))
-        const status = parseStatus(lastError)
+        const err = e instanceof Error ? e : new Error(String(e))
+        if (!firstError) firstError = err
+        lastError = err
+        const status = parseStatus(err)
         // Config errors won't be fixed by another model — fail fast.
-        if (status === 400 || status === 401 || status === 403) throw lastError
-        // Unknown model — skip straight to the next one in the chain.
+        if (status === 400 || status === 401 || status === 403) throw err
+        // Unknown/retired model — skip straight to the next one in the chain.
         if (status === 404) break
         // Transient (429/5xx): retry same model once after a short backoff.
         if (attempt === 0) await sleep(1000)
@@ -118,7 +124,7 @@ async function resilientChat(
     }
     if (i < chain.length - 1) await sleep(400)
   }
-  throw lastError
+  throw firstError ?? lastError
 }
 
 /** Env-mode adapter: provider-agnostic client (Gemini, OpenAI, OpenRouter, Z.ai open platform...). */
