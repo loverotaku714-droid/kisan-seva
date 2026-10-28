@@ -21,10 +21,14 @@ function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 function hasWord(q: string, word: string): boolean {
+  // Normalize punctuation (?, ., ।, quotes...) to spaces so trailing
+  // punctuation never breaks whole-word matching. Unicode-aware: keeps
+  // English, Devanagari and Kannada letters intact.
+  const norm = q.replace(/[^\p{L}\p{N}]+/gu, ' ')
   if (word.endsWith('*')) {
-    return new RegExp(`(^|\\s)${escapeRe(word.slice(0, -1))}`).test(q)
+    return new RegExp(`(^|\\s)${escapeRe(word.slice(0, -1))}`).test(norm)
   }
-  return ` ${q} `.includes(` ${word} `)
+  return ` ${norm} `.includes(` ${word} `)
 }
 
 const DISEASE_WORDS = [
