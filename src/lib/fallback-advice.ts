@@ -40,6 +40,7 @@ const DISEASE_WORDS = [
 ]
 const PRICE_WORDS = [
   'price', 'rate*', 'mandi*', 'market*', 'sell', 'selling', 'quintal', 'cost',
+  'bhav', 'bhaav', 'daam', // Hinglish typed in Latin script
   'दाम', 'भाव', 'कीमत', 'मंडी', 'बेच',
   'ಬೆಲೆ', 'ದರ', 'ಮಾರುಕಟ್ಟೆ', 'ಮಾರಾಟ',
 ]
