@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       ],
     })
 
-    const raw = completion.choices[0]?.message?.content ?? ''
+    const raw = completion.choices?.[0]?.message?.content ?? ''
     let category = 'general'
     let answer = ''
 
@@ -137,7 +137,12 @@ export async function POST(req: NextRequest) {
       )
     }
     return NextResponse.json(
-      { error: 'The assistant is busy right now. Please try again in a moment.' },
+      {
+        error: 'The assistant is busy right now. Please try again in a moment.',
+        ...(msg.startsWith('AI_PROVIDER_ERROR')
+          ? { code: 'ai_provider_error', detail: msg.slice(0, 220) }
+          : {}),
+      },
       { status: 500 }
     )
   }

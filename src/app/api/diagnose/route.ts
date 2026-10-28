@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       ],
     })
 
-    const raw = completion.choices[0]?.message?.content ?? ''
+    const raw = completion.choices?.[0]?.message?.content ?? ''
     let result: DiagnosisResult
     try {
       result = parseVisionJson(raw)
@@ -144,7 +144,12 @@ export async function POST(req: NextRequest) {
       )
     }
     return NextResponse.json(
-      { error: 'The Crop Doctor is busy right now. Please try again in a moment.' },
+      {
+        error: 'The Crop Doctor is busy right now. Please try again in a moment.',
+        ...(msg.startsWith('AI_PROVIDER_ERROR')
+          ? { code: 'ai_provider_error', detail: msg.slice(0, 220) }
+          : {}),
+      },
       { status: 500 }
     )
   }
