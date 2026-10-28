@@ -252,3 +252,10 @@ Work Log:
 Stage Summary:
 - Identity fixed locally; publish pipeline one command away: bash scripts/publish_github_profile.sh <FRESH_TOKEN> [--reauthor]
 - First commit under the new identity is this worklog entry
+
+Task 12 ADDENDUM (completion):
+- User provided fresh PAT (repo scope, verified login loverotaku714-droid id 300504935); ran publish_github_profile.sh --reauthor
+- Profile repo README force-pushed; kisan-seva homepage PATCH 200; 22 commits re-authored to ASJADAHMED07 <300504935+loverotaku714-droid@users.noreply.github.com> and force-pushed (abfac14..4c484ca)
+- Verified: commits API shows author.login=loverotaku714-droid on all commits (44 hits); profile README renders on direct (cache-free) fetch; site 200 after auto-deploy
+- Note: WebFetch tool served stale cached profile page — direct curl confirmed live state; contribution graph count recomputes async (may lag up to 24h)
+- Token NOT stored anywhere; user instructed to revoke immediately
