@@ -201,3 +201,21 @@ Work Log:
 Stage Summary:
 - DEPLOYMENT FIXED & VERIFIED: https://kisan-seva-z764.onrender.com (also -live and -node) all HTTP 200 serving Kisan Seva
 - Pending user decisions: (1) revoke Render API key rnd_dDt... + GitHub PAT (both pasted in chat); (2) provide GitHub PAT to push 04f3b78; (3) provide own AI API key (Z.ai/OpenAI-compatible) to enable /api/ask + /api/diagnose on Render; (4) optionally delete the 2 extra duplicate services; (5) demo login 9812345678/harvest42 does NOT exist on Render (fresh DB) — sign up anew
+
+---
+Task ID: 10
+Agent: Main agent (Z.ai)
+Task: User said "work on website, don't need other" — dropped PPT/synopsis tasks; fixed the AI-answers degradation on production
+
+Work Log:
+- PPT clarification batch was rejected by user; pivoted to website work
+- Created src/lib/zai.ts — getZAI() helper: tries .z-ai-config (sandbox/local) first, falls back to env vars ZAI_API_KEY + ZAI_BASE_URL (default https://api.z.ai/api/paas/v4, any OpenAI-compatible provider works); client cached per instance; chatModel()/visionModel() read ZAI_MODEL / ZAI_VISION_MODEL (defaults preserved)
+- Updated /api/ask + /api/diagnose to use the helper; unconfigured AI now returns friendly message + machine-readable code:'ai_not_configured' with 503 (was generic 500)
+- DEPLOY.md env table: added HOSTNAME (Render 502 fix), ZAI_API_KEY, ZAI_BASE_URL, ZAI_MODEL, ZAI_VISION_MODEL rows
+- Verified: eslint clean; local /api/ask returns proper price answer (cotton ₹5800-6600, category=price); /api/diagnose returns valid JSON diagnosis for synthetic leaf image
+- Committed locally as 8cbf943; NOT pushed (GitHub PAT unavailable — user must provide fresh token or push themselves)
+
+Stage Summary:
+- AI features are now deployable anywhere: on Render, setting ZAI_API_KEY (+ optional ZAI_BASE_URL/ZAI_MODEL) in the service env immediately enables real voice answers + photo diagnosis
+- Two commits pending push: 04f3b78 (Dockerfile HOSTNAME hardening) + 8cbf943 (AI env config)
+- Site live & healthy at https://kisan-seva-z764.onrender.com; duplicate services deleted by user via dashboard
