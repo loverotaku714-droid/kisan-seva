@@ -11,54 +11,75 @@ import type { getWeather } from '@/lib/weather'
 type Weather = Awaited<ReturnType<typeof getWeather>>
 export type FallbackCategory = 'crop_disease' | 'weather' | 'price' | 'general'
 
+/**
+ * Keyword matching with word boundaries.
+ * A trailing '*' means "prefix match at a word start" (stems like irrigat*,
+ * rain*); plain words must appear as whole words, so "price" no longer
+ * matches "rice" and "cotton" never loses to a substring accident.
+ */
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+function hasWord(q: string, word: string): boolean {
+  if (word.endsWith('*')) {
+    return new RegExp(`(^|\\s)${escapeRe(word.slice(0, -1))}`).test(q)
+  }
+  return ` ${q} `.includes(` ${word} `)
+}
+
 const DISEASE_WORDS = [
-  'disease', 'pest', 'insect', 'fungus', 'fungal', 'blight', 'rust', 'rot', 'wilt',
-  'yellow', 'spot', 'leaf', 'leaves', 'spray', 'aphid', 'borer', 'mildew',
-  'रोग', 'कीड़', 'इल्ली', 'फंगस', 'धब्बा', 'पत्ती', 'छिड़काव', 'स्प्रे', 'बीमार',
-  'ರೋಗ', 'ಕೀಟ', 'ಚಿಗಟ', 'ಎಲೆ', 'ಕಲೆ', 'ಸಿಂಪರಣೆ', 'ಬೆಳೆ ಕಾಯಿಲೆ',
+  'disease', 'pest*', 'insect*', 'fungus', 'fungal', 'blight', 'rust', 'rot*',
+  'wilt*', 'yellow*', 'spot*', 'leaf', 'leaves', 'spray', 'aphid*', 'borer*', 'mildew',
+  'रोग', 'कीड़*', 'इल्ली', 'फंगस', 'धब्ब*', 'पत्ती', 'छिड़काव', 'बीमार',
+  'ರೋಗ', 'ಕೀಟ*', 'ಚಿಗಟ', 'ಎಲೆ*', 'ಕಲೆ*', 'ಸಿಂಪರಣೆ', 'ಕಾಯಿಲೆ',
 ]
 const PRICE_WORDS = [
-  'price', 'rate', 'mandi', 'market', 'sell', 'selling', 'quintal', 'cost of',
+  'price', 'rate*', 'mandi*', 'market*', 'sell', 'selling', 'quintal', 'cost',
   'दाम', 'भाव', 'कीमत', 'मंडी', 'बेच',
   'ಬೆಲೆ', 'ದರ', 'ಮಾರುಕಟ್ಟೆ', 'ಮಾರಾಟ',
 ]
 const WEATHER_WORDS = [
-  'rain', 'weather', 'temperature', 'humidity', 'wind', 'irrigat', 'spray today',
-  'मौसम', 'बारिश', 'बरखा', 'तापमान', 'गर्मी', 'सिंचाई',
-  'ಮಳೆ', 'ವಾತಾವರಣ', 'ಹವಾಮಾನ', 'ತಾಪಮಾನ', 'ನೀರುಹಾಕುವಿಕೆ',
+  'rain*', 'weather', 'temperature', 'humidity', 'wind', 'irrigat*',
+  'मौसम', 'बारिश*', 'बरखा', 'तापमान', 'गर्मी', 'सिंचाई',
+  'ಮಳೆ*', 'ವಾತಾವರಣ', 'ಹವಾಮಾನ', 'ತಾಪಮಾನ', 'ನೀರುಹಾಕು*',
 ]
 
-/** Crop aliases (farmer words) → keys in SIMULATED_PRICES. */
+/**
+ * Crop aliases (farmer words incl. Hindi/Kannada) → keys in SIMULATED_PRICES.
+ * '*' = prefix match ("tomato*" covers tomatoes); plain = whole word
+ * ("tur" must not match "turn" or "turmeric").
+ */
 const CROP_ALIASES: Record<string, string[]> = {
-  tomato: ['tomato', 'टमाटर', 'ಟೊಮ್ಯಾಟೊ', 'ಟೊಮೇಟೊ'],
-  onion: ['onion', 'प्याज', 'प्याज़', 'कांदा', 'ಈರುಳ್ಳಿ'],
-  potato: ['potato', 'आलू', 'आलु', 'ಆಲೂಗಡ್ಡೆ', 'ಆಲೂ'],
+  tomato: ['tomato*', 'टमाटर', 'ಟೊಮ್ಯಾಟೊ', 'ಟೊಮೇಟೊ'],
+  onion: ['onion*', 'प्याज', 'प्याज़', 'कांदा', 'ಈರುಳ್ಳಿ'],
+  potato: ['potato*', 'आलू', 'आलु', 'ಆಲೂಗಡ್ಡೆ', 'ಆಲೂ'],
   rice: ['rice', 'paddy', 'धान', 'चावल', 'ಭತ್ತ', 'ಅಕ್ಕಿ'],
   ragi: ['ragi', 'finger millet', 'रागी', 'ರಾಗಿ'],
   jowar: ['jowar', 'sorghum', 'ज्वार', 'ಜೋಳ'],
-  maize: ['maize', 'corn', 'मक्का', 'ಮೆಕ್ಕೆ ಜೋಳ', 'ಮೆಕ್ಕೆ'],
-  cotton: ['cotton', 'कपास', 'ಹತ್ತಿ'],
-  groundnut: ['groundnut', 'peanut', 'मूंगफली', 'मूँगफली', 'ಶೇಂಗಾ'],
+  maize: ['maize*', 'corn', 'मक्का', 'ಮೆಕ್ಕೆ'],
+  cotton: ['cotton*', 'कपास', 'ಹತ್ತಿ'],
+  groundnut: ['groundnut*', 'peanut*', 'मूंगफली', 'मूँगफली', 'ಶೇಂಗಾ'],
   tur: ['tur', 'toor', 'arhar', 'तूर', 'अरहर', 'ತೊಗರಿ'],
-  'green chilli': ['chilli', 'chili', 'मिर्च', 'ಮೆಣಸಿನಕಾಯಿ'],
+  'red gram': ['red gram'],
+  'green chilli': ['chilli*', 'chili*', 'pepper', 'मिर्च', 'ಮೆಣಸಿನಕಾಯಿ'],
 }
 
 export function classifyFallback(question: string): FallbackCategory {
   const q = question.toLowerCase()
-  if (WEATHER_WORDS.some((w) => q.includes(w))) return 'weather'
-  if (PRICE_WORDS.some((w) => q.includes(w))) return 'price'
-  if (DISEASE_WORDS.some((w) => q.includes(w))) return 'crop_disease'
+  if (WEATHER_WORDS.some((w) => hasWord(q, w))) return 'weather'
+  if (PRICE_WORDS.some((w) => hasWord(q, w))) return 'price'
+  if (DISEASE_WORDS.some((w) => hasWord(q, w))) return 'crop_disease'
   return 'general'
 }
 
 function findCrop(question: string): string | null {
   const q = question.toLowerCase()
   for (const [crop, aliases] of Object.entries(CROP_ALIASES)) {
-    if (aliases.some((a) => q.includes(a))) return crop in SIMULATED_PRICES ? crop : 'tur'
+    if (aliases.some((a) => hasWord(q, a))) return crop
   }
-  // direct key match (e.g. "red gram")
+  // direct key match (e.g. "red gram", "green chilli" typed verbatim)
   for (const crop of Object.keys(SIMULATED_PRICES)) {
-    if (q.includes(crop)) return crop
+    if (hasWord(q, crop)) return crop
   }
   return null
 }
@@ -90,13 +111,14 @@ export function buildFallbackAnswer(
     const crop = findCrop(question)
     if (crop) {
       const p = SIMULATED_PRICES[crop]
+      const cropName = crop.charAt(0).toUpperCase() + crop.slice(1)
       const trend = TREND_TEXT[language][p.trend]
       const answer =
         language === 'hi'
-          ? `${crop} का आज मंडी भाव ${p.min} से ${p.max} रुपये प्रति क्विंटल है और ${trend}। अच्छे दाम के लिए फसल को साफ और सूखा रखकर बेचें। सही रेट जानने के लिए अपनी नजदीकी मंडी या ईनाम पोर्टल जरूर देखें।`
+          ? `${cropName} का आज मंडी भाव ${p.min} से ${p.max} रुपये प्रति क्विंटल है और ${trend}। अच्छे दाम के लिए फसल को साफ और सूखा रखकर बेचें। सही रेट जानने के लिए अपनी नजदीकी मंडी या ईनाम पोर्टल जरूर देखें।`
           : language === 'kn'
-            ? `${crop} ಬೆಳೆಯ ಇಂದಿನ ಮಾರುಕಟ್ಟೆ ದರ ${p.min} ರಿಂದ ${p.max} ರೂಪಾಯಿ ಪ್ರತಿ ಕ್ವಿಂಟಾಲ್, ಮತ್ತು ${trend}। ಉತ್ತಮ ಬೆಲೆಗಾಗಿ ಬೆಳೆಯನ್ನು ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿ ಮತ್ತು ಸ್ವಚ್ಛವಾಗಿ ಮಾರಾಟ ಮಾಡಿ। ನಿಖರವಾದ ದರಕ್ಕೆ ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಇ-ನಾಮ್ ಪೋರ್ಟಲ್ ನೋಡಿ।`
-            : `${crop} mandi price today is ${p.min} to ${p.max} rupees per quintal and ${trend}. For a better rate, keep the produce clean and dry before selling. Please check your nearest mandi or the eNAM portal for the exact rate.`
+            ? `${cropName} ಬೆಳೆಯ ಇಂದಿನ ಮಾರುಕಟ್ಟೆ ದರ ${p.min} ರಿಂದ ${p.max} ರೂಪಾಯಿ ಪ್ರತಿ ಕ್ವಿಂಟಾಲ್, ಮತ್ತು ${trend}। ಉತ್ತಮ ಬೆಲೆಗಾಗಿ ಬೆಳೆಯನ್ನು ಚೆನ್ನಾಗಿ ಒಣಗಿಸಿ ಮತ್ತು ಸ್ವಚ್ಛವಾಗಿ ಮಾರಾಟ ಮಾಡಿ। ನಿಖರವಾದ ದರಕ್ಕೆ ಹತ್ತಿರದ ಮಾರುಕಟ್ಟೆ ಅಥವಾ ಇ-ನಾಮ್ ಪೋರ್ಟಲ್ ನೋಡಿ।`
+            : `${cropName} mandi price today is ${p.min} to ${p.max} rupees per quintal and ${trend}. For a better rate, keep the produce clean and dry before selling. Please check your nearest mandi or the eNAM portal for the exact rate.`
       return { category: 'price', answer }
     }
     const top = Object.entries(SIMULATED_PRICES).slice(0, 4)
